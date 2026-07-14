@@ -139,6 +139,12 @@ export interface QuestionnaireResult {
 	answers: QuestionAnswer[];
 	cancelled: boolean;
 	error?: QuestionnaireError;
+	/**
+	 * Dialog-level comment typed on the Submit tab (Ctrl+E). Present only when
+	 * non-empty. On submit: extra instructions for the model. On cancel: the
+	 * user's rationale for declining.
+	 */
+	comment?: string;
 }
 
 export function isQuestionnaireResult(value: unknown): value is QuestionnaireResult {

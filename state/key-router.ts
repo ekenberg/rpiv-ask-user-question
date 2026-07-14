@@ -34,6 +34,12 @@ export type QuestionnaireAction =
 	| { kind: "append_confirm"; answer: QuestionAnswer; note: string; autoAdvanceTab?: number }
 	/** Leave append mode discarding the in-progress addendum. */
 	| { kind: "append_exit" }
+	/** Enter submit-tab comment mode (Ctrl+E on the Submit tab). */
+	| { kind: "comment_enter" }
+	/** Save the comment buffer and return to the picker; `comment` is the raw editor buffer. */
+	| { kind: "comment_confirm"; comment: string }
+	/** Leave comment mode discarding the in-progress edit. */
+	| { kind: "comment_exit" }
 	/** Flip `state.collapsed`. Always available, regardless of inner mode (see top intercept in `routeKey`). */
 	| { kind: "toggle_collapsed" }
 	| { kind: "ignore" };
@@ -201,6 +207,17 @@ export function routeKey(data: string, state: QuestionnaireState, runtime: Quest
 		return { kind: "ignore" };
 	}
 
+	if (state.commentMode) {
+		if (kb.matches(data, KEYBIND_CONFIRM)) {
+			// Deliberately does NOT finalize the dialog — see commentConfirmHandler.
+			return { kind: "comment_confirm", comment: runtime.inputBuffer };
+		}
+		if (kb.matches(data, KEYBIND_CANCEL)) return { kind: "comment_exit" };
+		// Everything else (printable chars, arrows, backspace) is forwarded to the
+		// inline editor via the session's `handleIgnoreInline` fast path.
+		return { kind: "ignore" };
+	}
+
 	if (state.chatFocused) {
 		if (kb.matches(data, KEYBIND_CANCEL)) return { kind: "cancel" };
 		if (kb.matches(data, KEYBIND_CONFIRM)) {
@@ -241,6 +258,10 @@ export function routeKey(data: string, state: QuestionnaireState, runtime: Quest
 	}
 
 	if (runtime.isMulti && state.currentTab === runtime.questions.length) {
+		// Ctrl+E stages a dialog-level comment (submit instructions / cancel
+		// rationale). Available regardless of unanswered questions (D1 allows
+		// partial submission).
+		if (matchesKey(data, Key.ctrl("e"))) return { kind: "comment_enter" };
 		if (kb.matches(data, KEYBIND_CANCEL)) return { kind: "cancel" };
 		const tab = tabSwitchAction(data, state, runtime);
 		if (tab) return tab;

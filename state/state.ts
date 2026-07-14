@@ -23,6 +23,16 @@ export interface QuestionnaireState {
 	 * Esc discards. Mutually exclusive with `inputMode` (option rows vs the "other" row).
 	 */
 	appendMode: boolean;
+	/**
+	 * Submit-tab comment mode (Ctrl+E on the Submit tab): an inline editor is
+	 * shown between the answer summary and the bottom border; Enter SAVES the
+	 * buffer into `submitComment` and returns to the picker (it deliberately
+	 * does NOT finalize the dialog — Enter-finalizes would make a stray
+	 * keystroke submit/cancel irreversibly). Esc discards the in-progress
+	 * edit. Mutually exclusive with `inputMode`/`appendMode` by construction
+	 * (those exist only on question tabs).
+	 */
+	commentMode: boolean;
 	chatFocused: boolean;
 	answers: ReadonlyMap<number, QuestionAnswer>;
 	multiSelectChecked: ReadonlySet<number>;
@@ -34,6 +44,12 @@ export interface QuestionnaireState {
 	 * typed on, and must never travel to a different option on the same question.
 	 */
 	notesByTab: ReadonlyMap<number, OptionNote>;
+	/**
+	 * Dialog-level comment staged on the Submit tab. Travels on the terminal
+	 * result as `QuestionnaireResult.comment` for BOTH submit (extra
+	 * instructions) and cancel (rationale). Empty string = no comment.
+	 */
+	submitComment: string;
 	/** True iff the focused option carries a non-empty `preview` string. Gates `notes_enter` and the "n to add notes" hint chip. */
 	focusedOptionHasPreview: boolean;
 	/** Focused row in the Submit-tab picker (0 = Submit, 1 = Cancel). Reset on tab switch. */

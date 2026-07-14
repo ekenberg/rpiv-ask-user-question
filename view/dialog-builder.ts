@@ -14,6 +14,8 @@ export const HINT_PART_NAV = "↑/↓ to navigate";
 export const HINT_PART_TOGGLE = "Space to toggle";
 export const HINT_PART_NOTES = "n to add notes";
 export const HINT_PART_APPEND = "Ctrl+E to append";
+export const HINT_PART_COMMENT = "Ctrl+E to add a comment";
+export const HINT_COMMENT_EDITING = "Enter to save comment · Esc to discard";
 export const HINT_PART_TAB = "Tab to switch questions";
 export const HINT_PART_CANCEL = "Esc to cancel";
 export const HINT_PART_COLLAPSE = "Ctrl+] to collapse";
@@ -52,6 +54,7 @@ export interface DialogConfig {
 	questions: readonly QuestionData[];
 	tabBar: TabBar | undefined;
 	notesInput: Input;
+	inlineInput: Input;
 	chatRow: ChatRowView;
 	isMulti: boolean;
 	tabsByIndex: ReadonlyArray<TabComponents>;
@@ -98,6 +101,7 @@ export class DialogView implements StatefulView<DialogProps> {
 					theme: config.theme,
 					questions: config.questions,
 					submitPicker: config.submitPicker,
+					inlineInput: config.inlineInput,
 				})
 			: undefined;
 		this.maxFooterRowCount = Math.max(this.questionStrategy.footerRowCount, this.submitStrategy?.footerRowCount ?? 0);

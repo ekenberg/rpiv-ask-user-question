@@ -237,6 +237,7 @@ class QuestionnaireBuilder {
 				questions: this.questions,
 				tabBar,
 				notesInput: this.notesInput,
+				inlineInput: this.inlineInput,
 				chatRow: this.chatRow,
 				isMulti: this.isMulti,
 				tabsByIndex: tabs,
@@ -294,7 +295,7 @@ class QuestionnaireBuilder {
 			inlineInput: this.inlineInput,
 			globalBindings,
 			perTabBindings,
-			extraInvalidatables: [this.notesInput],
+			extraInvalidatables: [this.notesInput, this.inlineInput],
 		});
 	}
 

@@ -24,6 +24,7 @@ courtesy PR sent to `juicesharp/rpiv-mono`.
 - `package.json` — pi package manifest (`pi.extensions: ["./index.ts"]`).
 - `DEV.md` — **read this before changing anything**: branches, install, edit loop.
 - `README.md` — install + usage for end users.
+- `PLAN.md` — planned enhancements for this fork (e.g. dialog-level `Ctrl+E` comment on the Submit/Cancel tab); design notes + wiring checklist, not yet implemented.
 
 ## Conventions
 - Develop on the `live` branch; `pi install git:git@github.com:ekenberg/rpiv-ask-user-question@live`
@@ -35,9 +36,12 @@ courtesy PR sent to `juicesharp/rpiv-mono`.
   case-by-case decision (upstream `main` has diverged from the v1.20.0 base).
 
 ## Hard rules
-- The inline-append feature (Ctrl+E) is the single behavioral delta from
-  upstream v1.20.0 in this fork, plus the notes-reopen bugfix. Keep that delta
-  small and documented so future upstream re-merges stay tractable.
+- The inline-append feature (Ctrl+E) and the Submit-tab comment feature
+  (Ctrl+E on the Submit tab) are the two behavioral deltas from upstream
+  v1.20.0 in this fork, plus the notes-reopen bugfix. Keep those deltas
+  small and documented so future upstream re-merges stay tractable. See
+  `DEV.md` → "The delta from upstream v1.20.0" and `IMPL_SUBMIT_COMMENT.md`
+  for the Submit-tab comment's design record.
 - Do not author reserved labels (`"Other"`, `"Type something."`, `"Chat about this"`,
   `"Next →"`) in tool calls — they are rejected at validation.
 - Keep README/DEV claims consistent with the actual install state in

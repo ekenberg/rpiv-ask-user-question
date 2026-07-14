@@ -35,11 +35,13 @@ function initialState(): QuestionnaireState {
 		optionIndex: 0,
 		inputMode: false,
 		appendMode: false,
+		commentMode: false,
 		notesVisible: false,
 		chatFocused: false,
 		answers: new Map(),
 		multiSelectChecked: new Set(),
 		notesByTab: new Map(),
+		submitComment: "",
 		focusedOptionHasPreview: false,
 		submitChoiceIndex: 0,
 		notesDraft: "",
@@ -148,6 +150,9 @@ export class QuestionnaireSession {
 			case "set_notes_focused":
 				this.notesInput.focused = effect.focused;
 				return;
+			case "set_input_focused":
+				this.inlineInput.focused = effect.focused;
+				return;
 			case "forward_notes_keystroke":
 				this.notesInput.handleInput(effect.data);
 				return;
@@ -171,7 +176,7 @@ export class QuestionnaireSession {
 	 * latency profile from Phase 11.
 	 */
 	private handleIgnoreInline(data: string): void {
-		if (!this.state.inputMode && !this.state.appendMode) return;
+		if (!this.state.inputMode && !this.state.appendMode && !this.state.commentMode) return;
 		this.inlineInput.handleInput(data);
 		this.viewAdapter.apply(this.state);
 	}

@@ -7,9 +7,11 @@ import type { ChatRowView } from "./components/chat-row-view.js";
 import type { PreviewPane, PreviewPaneProps } from "./components/preview/preview-pane.js";
 import {
 	type DialogState,
+	HINT_COMMENT_EDITING,
 	HINT_PART_APPEND,
 	HINT_PART_CANCEL,
 	HINT_PART_COLLAPSE,
+	HINT_PART_COMMENT,
 	HINT_PART_ENTER,
 	HINT_PART_NAV,
 	HINT_PART_TAB,
@@ -22,6 +24,7 @@ import type { StatefulView } from "./stateful-view.js";
 import type { TabComponents } from "./tab-components.js";
 
 const NOTES_HEADER = "Notes:";
+const COMMENT_HEADER = "Comment:";
 
 /**
  * Single-row, width-clipped chrome cell. The footer row count is invariant
@@ -156,6 +159,7 @@ export interface SubmitTabStrategyConfig {
 	theme: Theme;
 	questions: readonly QuestionData[];
 	submitPicker: Component | undefined;
+	inlineInput: Input;
 }
 
 export class SubmitTabStrategy implements TabContentStrategy {
@@ -194,7 +198,29 @@ export class SubmitTabStrategy implements TabContentStrategy {
 		return this.bodyComponent(state).render(width).length;
 	}
 
-	midRows(_state: DialogState): Component[] {
+	midRows(state: DialogState): Component[] {
+		// Comment editor (Ctrl+E): rendered in the variable mid slot so the fixed
+		// footerRowCount = 5 invariant is untouched (same pattern as the question
+		// tabs' notes editor).
+		if (state.commentMode) {
+			return [
+				new Text(this.config.theme.fg("muted", t("review.comment_header", COMMENT_HEADER)), 1, 0),
+				this.config.inlineInput,
+				new Spacer(1),
+			];
+		}
+		// Staged-comment feedback: after Enter saves, show it so the user knows the
+		// comment will travel with Submit/Cancel.
+		if (state.submitComment.length > 0) {
+			return [
+				new Text(
+					this.config.theme.fg("dim", `${t("review.comment_header", COMMENT_HEADER)} ${state.submitComment}`),
+					1,
+					0,
+				),
+				new Spacer(1),
+			];
+		}
 		return [];
 	}
 
@@ -206,14 +232,17 @@ export class SubmitTabStrategy implements TabContentStrategy {
 				missing.push(q.header && q.header.length > 0 ? q.header : `Q${i + 1}`);
 			}
 		}
-		const promptText =
+		const base =
 			missing.length === 0
 				? this.config.theme.fg("muted", t("review.ready", READY_PROMPT))
 				: this.config.theme.fg(
 						"warning",
 						`${t("review.incomplete", INCOMPLETE_WARNING_PREFIX)} ${missing.join(", ")}`,
 					);
-		const out: Component[] = [new Spacer(1), new Text(promptText, 1, 0), new Spacer(1)];
+		const promptText = state.commentMode
+			? this.config.theme.fg("dim", t("hint.comment_editing", HINT_COMMENT_EDITING))
+			: `${base} ${this.config.theme.fg("dim", `· ${t("hint.comment_add", HINT_PART_COMMENT)}`)}`;
+		const out: Component[] = [new Spacer(1), new OneLineClippedText(promptText, 1), new Spacer(1)];
 		if (this.config.submitPicker) {
 			out.push(this.config.submitPicker);
 		} else {

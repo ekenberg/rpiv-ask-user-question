@@ -16,7 +16,7 @@ layout, the fork relationship, and the day-to-day edit loop.
 
 ### The delta from upstream v1.20.0
 
-Two behavioral changes live in this fork:
+Three behavioral changes live in this fork:
 
 1. **Inline append (Ctrl+E)** — on any single-select option (preview or not),
    `Ctrl+E` opens an inline editor at the end of the option row; typed text
@@ -37,6 +37,32 @@ Two behavioral changes live in this fork:
    `answers[tab].notes` (matching `switchTabResult`), so reopening the notes
    editor before confirming an option no longer wipes the note. (Kept even
    though the `n` path is retired, for consistency and in case of re-merge.)
+3. **Submit-tab comment (Ctrl+E)** — on the Submit tab, `Ctrl+E` opens an
+   inline editor (rendered in `SubmitTabStrategy.midRows`, between the answer
+   summary and the bottom border); `Enter` **saves** the buffer into
+   `state.submitComment` and returns to the Submit/Cancel picker —
+   deliberately does NOT finalize the dialog (unlike per-option append,
+   where Enter confirms — Enter-finalizes on the Submit tab would let a
+   stray keystroke submit/cancel irreversibly). `Esc` discards the
+   in-progress edit; the previously saved comment survives. The comment is a
+   single dialog-level buffer that travels with whichever terminal action
+   fires (`QuestionnaireResult.comment`): extra instructions on submit, a
+   rationale on cancel. See `IMPL_SUBMIT_COMMENT.md` for the full design
+   record.
+   - Touch points: `state/state.ts` (`commentMode`, `submitComment`),
+     `state/key-router.ts` (`comment_enter`/`comment_confirm`/`comment_exit`,
+     intercepted like `appendMode` plus a Ctrl+E entry in the submit-tab
+     block), `state/state-reducer.ts` (handlers, `set_input_focused` effect,
+     `doneFor` attaches the comment), `state/questionnaire-session.ts`
+     (`initialState`, `runEffect` case, `handleIgnoreInline` guard),
+     `state/build-questionnaire.ts` (threads `inlineInput` into
+     `DialogConfig` + `extraInvalidatables`), `view/dialog-builder.ts`
+     (`DialogConfig.inlineInput`, hint constants), `view/tab-content-strategy.ts`
+     (`SubmitTabStrategy.midRows` editor / staged-comment line,
+     `footerRows` Ctrl+E hint on the prompt row), `tool/types.ts`
+     (`QuestionnaireResult.comment?`), `tool/response-envelope.ts` (surfaces
+     the comment in both the submit and cancel envelope text),
+     `locales/en.json`.
 
 ## Repo layout — two repos, one remote
 

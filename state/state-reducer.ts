@@ -41,6 +41,7 @@ export type Effect =
 	| { kind: "clear_input_buffer" }
 	| { kind: "set_notes_value"; value: string }
 	| { kind: "set_notes_focused"; focused: boolean }
+	| { kind: "set_input_focused"; focused: boolean }
 	| { kind: "forward_notes_keystroke"; data: string }
 	| { kind: "done"; result: QuestionnaireResult };
 
@@ -115,6 +116,7 @@ function switchTabResult(state: QuestionnaireState, nextTab: number, ctx: ApplyC
 		optionIndex: 0,
 		inputMode: false,
 		appendMode: false,
+		commentMode: false,
 		notesVisible: false,
 		chatFocused: false,
 		submitChoiceIndex: 0,
@@ -132,7 +134,11 @@ function switchTabResult(state: QuestionnaireState, nextTab: number, ctx: ApplyC
 }
 
 function doneFor(state: QuestionnaireState, ctx: ApplyContext, cancelled: boolean): ApplyResult {
-	const result: QuestionnaireResult = { answers: orderedAnswers(state, ctx.questions), cancelled };
+	const result: QuestionnaireResult = {
+		answers: orderedAnswers(state, ctx.questions),
+		cancelled,
+		...(state.submitComment.length > 0 ? { comment: state.submitComment } : {}),
+	};
 	return { state, effects: [{ kind: "done", result }] };
 }
 
@@ -266,6 +272,36 @@ const appendExitHandler: Handler<"append_exit"> = (state, _action, _ctx) => ({
 	effects: [{ kind: "clear_input_buffer" }],
 });
 
+const commentEnterHandler: Handler<"comment_enter"> = (state, _action, _ctx) => ({
+	// Prefill with the previously saved comment so Ctrl+E re-opens for editing.
+	// The session's set_input_buffer effect also moves the cursor to end-of-buffer.
+	state: { ...state, commentMode: true },
+	effects: [
+		{ kind: "set_input_buffer", value: state.submitComment },
+		{ kind: "set_input_focused", focused: true },
+	],
+});
+
+const commentExitHandler: Handler<"comment_exit"> = (state, _action, _ctx) => ({
+	// Discard the in-progress edit; the previously SAVED comment survives.
+	state: { ...state, commentMode: false },
+	effects: [
+		{ kind: "clear_input_buffer" },
+		{ kind: "set_input_focused", focused: false },
+	],
+});
+
+const commentConfirmHandler: Handler<"comment_confirm"> = (state, action, _ctx) => ({
+	// Save-only: deliberately does NOT emit `done`. Submit/Cancel stay explicit
+	// picker actions so a stray Enter while typing can never finalize the dialog.
+	// Empty (after trim) clears a previously saved comment.
+	state: { ...state, submitComment: action.comment.trim(), commentMode: false },
+	effects: [
+		{ kind: "clear_input_buffer" },
+		{ kind: "set_input_focused", focused: false },
+	],
+});
+
 const appendConfirmHandler: Handler<"append_confirm"> = (state, action, ctx) => {
 	// Persist the addendum (tagged with its option), then delegate to confirmHandler — it
 	// merges the matching note into the answer and handles auto-advance/done.
@@ -337,6 +373,9 @@ const HANDLERS: { [K in QuestionnaireAction["kind"]]: Handler<K> } = {
 	append_enter: appendEnterHandler,
 	append_confirm: appendConfirmHandler,
 	append_exit: appendExitHandler,
+	comment_enter: commentEnterHandler,
+	comment_confirm: commentConfirmHandler,
+	comment_exit: commentExitHandler,
 	submit: submitHandler,
 	submit_nav: submitNavHandler,
 	focus_chat: focusChatHandler,

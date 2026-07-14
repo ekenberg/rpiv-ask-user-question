@@ -1,6 +1,6 @@
 # rpiv-ask-user-question (ekenberg fork)
 
-> **Fork notice:** this is a fork of [`@juicesharp/rpiv-ask-user-question`](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question) (v1.20.0 base), maintained on a separate line of development for the **inline-append (Ctrl+E)** feature described below. It is not published to npm — install from git as shown in [Install](#install). Upstream remains the source of truth for everything except the inline-append delta.
+> **Fork notice:** this is a fork of [`@juicesharp/rpiv-ask-user-question`](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question) (v1.20.0 base), maintained on a separate line of development for the **inline-append (Ctrl+E)** and **Submit-tab comment (Ctrl+E)** features described below. It is not published to npm — install from git as shown in [Install](#install). Upstream remains the source of truth for everything except these deltas.
 
 <div align="center">
   <a href="https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question">
@@ -21,6 +21,7 @@ Let the model ask you structured clarifying questions instead of guessing. `rpiv
 - **Inline append (Ctrl+E)** - on any single-select option, press `Ctrl+E` to open an inline editor at the end of the option row; type an addendum, `Enter` confirms option+addendum in one step (auto-advancing in multi-question mode), `Esc` discards. The addendum is **option-scoped**: text typed on option A never leaks onto option B. Replaces the old `n` notes-editor path. The addendum travels back to the model as the answer's `notes`.
 - **Multi-select questions** - checkboxes with `Space` to toggle, Enter-as-toggle on rows, a `Next` sentinel to advance, and toggles persisted across tab switches.
 - **Submit tab** - review every answer before submitting; warns about unanswered questions and offers a Submit picker.
+- **Submit-tab comment (Ctrl+E)** - on the Submit tab, press `Ctrl+E` to open an inline editor; `Enter` **saves** the comment and returns to the Submit/Cancel picker (it does not submit or cancel by itself — a stray Enter while typing can never finalize the dialog); `Esc` discards the in-progress edit. The saved comment travels back to the model on whichever action you take: extra instructions on Submit, a rationale on Cancel.
 - **Chat row on every tab** - redirect the conversation without leaving the dialog.
 - **Terminal-row-aware overflow scroll** - when the dialog is taller than the terminal, the body scrolls between a sticky heading and sticky hints/border; overflow indicators (↑ / ↓ / ↕) show what's clipped.
 - **"Other" free-text fallback** - type a custom answer when no option fits.
@@ -105,6 +106,7 @@ Returns:
       preview?: string,            // echoed back when option carried a preview
     }>,
     cancelled: boolean,
+    comment?: string,               // dialog-level comment from the Submit tab (Ctrl+E), when present
     error?: "no_ui" | "no_questions" | "empty_options" | "too_many_questions"
           | "duplicate_question" | "duplicate_option_label" | "reserved_label",
   }

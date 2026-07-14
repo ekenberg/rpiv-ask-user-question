@@ -4,6 +4,8 @@ import type { QuestionAnswer, QuestionnaireResult, QuestionParams } from "./type
 export const DECLINE_MESSAGE = "User declined to answer questions";
 export const ENVELOPE_PREFIX = "User has answered your questions:";
 export const ENVELOPE_SUFFIX = "You can now continue with the user's answers in mind.";
+export const SUBMIT_COMMENT_PREFIX = "Additional instructions from the user:";
+export const CANCEL_REASON_PREFIX = "Reason given:";
 
 /**
  * Map a `QuestionnaireResult` (or null/cancelled) to the LLM-facing tool envelope.
@@ -12,9 +14,13 @@ export const ENVELOPE_SUFFIX = "You can now continue with the user's answers in 
  */
 export function buildQuestionnaireResponse(result: QuestionnaireResult | null | undefined, params: QuestionParams) {
 	if (!result || result.cancelled) {
-		return buildToolResult(DECLINE_MESSAGE, {
+		const comment = result?.comment;
+		const text =
+			comment && comment.length > 0 ? `${DECLINE_MESSAGE}. ${CANCEL_REASON_PREFIX} ${comment}` : DECLINE_MESSAGE;
+		return buildToolResult(text, {
 			answers: result?.answers ?? [],
 			cancelled: true,
+			...(comment && comment.length > 0 ? { comment } : {}),
 		});
 	}
 	const segments: string[] = [];
@@ -25,7 +31,8 @@ export function buildQuestionnaireResponse(result: QuestionnaireResult | null | 
 	if (segments.length === 0) {
 		return buildToolResult(DECLINE_MESSAGE, { answers: result.answers, cancelled: true });
 	}
-	return buildToolResult(`${ENVELOPE_PREFIX} ${segments.join(" ")} ${ENVELOPE_SUFFIX}`, result);
+	const tail = result.comment && result.comment.length > 0 ? ` ${SUBMIT_COMMENT_PREFIX} ${result.comment}` : "";
+	return buildToolResult(`${ENVELOPE_PREFIX} ${segments.join(" ")} ${ENVELOPE_SUFFIX}${tail}`, result);
 }
 
 /**
