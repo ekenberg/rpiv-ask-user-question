@@ -9,8 +9,6 @@
   "hint.toggle": "Space to toggle",
   "hint.notes": "n to add notes",
   "hint.tab": "Tab to switch questions",
-  "hint.collapse": "Ctrl+] to collapse",
-  "hint.expand_line": "Ctrl+] to expand · Esc to cancel",
   "hint.cancel": "Esc to cancel",
   "hint.comment_add": "Ctrl+E to add a comment",
   "hint.comment_editing": "Enter to save comment · Esc to discard",

@@ -16,7 +16,7 @@ layout, the fork relationship, and the day-to-day edit loop.
 
 ### The delta from upstream v1.20.0
 
-Three behavioral changes live in this fork:
+Four behavioral changes live in this fork:
 
 1. **Inline append (Ctrl+E)** — on any single-select option (preview or not),
    `Ctrl+E` opens an inline editor at the end of the option row; typed text
@@ -63,6 +63,34 @@ Three behavioral changes live in this fork:
      (`QuestionnaireResult.comment?`), `tool/response-envelope.ts` (surfaces
      the comment in both the submit and cancel envelope text),
      `locales/en.json`.
+4. **Non-overlay rendering (+ removal of upstream's `Ctrl+]` collapse)** —
+   the dialog no longer renders as a full-viewport `overlay: true` bottom
+   overlay (which could overwrite already-printed transcript, including the
+   model's own text immediately preceding the tool call). It now uses the
+   default (non-overlay) `ctx.ui.custom()` path — the SAME path pi's own
+   bundled `examples/extensions/questionnaire.ts` reference uses — which
+   swaps the dialog into the normal input-editor slot, a sibling of the chat
+   transcript, so preceding output is naturally preserved above it instead
+   of being composited over. **Because this makes the transcript always
+   visible, upstream's `Ctrl+]` collapse-to-read feature became pointless**
+   (empirically: in non-overlay mode collapsing only frees rows at the
+   bottom of the document — pi commits drawn transcript in place, so nothing
+   slides down to fill them; it reveals no additional transcript and just
+   leaves a gap) — so the entire `collapsed` state, the `Ctrl+]` binding, the
+   collapsed-mode lockout, and the collapsed hint line were removed. See
+   `IMPL_TRANSCRIPT_VISIBILITY.md` for the full source-verified research
+   (how `pi-tui`'s overlay compositor actually works vs. the non-overlay
+   path), alternatives considered, and the design record.
+   - Touch points: `ask-user-question.ts` (drops `overlay`/`overlayOptions`),
+     `state/build-questionnaire.ts` (`CHROME_RESERVE_ROWS`/`MIN_DIALOG_ROWS`,
+     `getTerminalRows`), and the collapse removal across `state/state.ts`
+     (`collapsed` field), `state/key-router.ts` (`toggle_collapsed` action +
+     `Ctrl+]` intercept + lockout), `state/state-reducer.ts`
+     (`toggleCollapsedHandler` + HANDLERS entry),
+     `state/questionnaire-session.ts` (`collapsedRender` + render branch),
+     `view/dialog-builder.ts` (collapse hint constants),
+     `view/tab-content-strategy.ts` (`buildHintText` collapse legend),
+     `locales/en.json` + `locales/zh.json`.
 
 ## Repo layout — two repos, one remote
 

@@ -1,5 +1,73 @@
 # PLAN
 
+## [FEATURE] Transcript visibility (dialog no longer covers preceding output)
+
+### What we want
+The dialog currently renders as a full-height `overlay: true` bottom overlay
+(`ask-user-question.ts`), which can overwrite up to 100% of the visible
+terminal viewport — including the model's own text that immediately
+preceded the tool call, which is almost always the most important context
+for answering. This forced a collapse/expand cycle (`Ctrl+]`) on nearly
+every invocation.
+
+### Research summary (source-verified against `@earendil-works/pi-tui` and
+`@earendil-works/pi-coding-agent`)
+`pi-tui`'s overlay compositor (`TUI.compositeOverlays`, `tui.js`) literally
+overwrites base-document lines at the overlay's screen position — it does
+not push/scroll content, it replaces it in place, and with `maxHeight:
+"100%"` that can be the entire viewport. The **default** (non-overlay)
+`ctx.ui.custom()` path instead swaps the component into the SAME container
+slot as the normal chat input editor (`interactive-mode.js`
+`showExtensionCustom`), as a sibling of the chat transcript in the base
+document — nothing is ever overwritten, only naturally scrolled, exactly
+like any long user message. This is also the path used by pi's own bundled
+reference example (`examples/extensions/questionnaire.ts`), which never
+passes `overlay: true`. Full research, alternatives considered (capped
+overlay `maxHeight`, static row caps), and the decision rationale are in
+`IMPL_TRANSCRIPT_VISIBILITY.md` §Part A.
+
+### Decision
+Drop `overlay: true` entirely (Option C in the impl doc). Reserve a small,
+named, tunable row budget (`CHROME_RESERVE_ROWS`) so `DialogView`'s existing
+internal overflow/scroll-to-focus math doesn't assume it owns the full
+terminal height (pi's own footer/widget rows sit below our dialog in the
+non-overlay document and need headroom). Upstream's `Ctrl+]` collapse
+feature is **removed** — see the next entry.
+
+### Status
+**Implemented + live-tested.** Verified in a live session: small dialogs
+leave the preceding output visible; a tall multi-question/preview dialog
+shows its heading and Submit picker without clipping. See
+`IMPL_TRANSCRIPT_VISIBILITY.md` §A4 for the exact diff.
+
+---
+
+## [FEATURE] Remove the `Ctrl+]` collapse feature
+
+### What we want
+With non-overlay rendering (entry above) the transcript is always visible
+above the dialog, so upstream's `Ctrl+]` collapse-to-read feature no longer
+has a purpose. Initially it was kept (and its `Esc`-cancels-everything
+footgun fixed to `Esc`-expands, plus a stronger pending indicator). Live
+testing then showed collapse provides **no** benefit in non-overlay mode:
+collapsing only frees rows at the *bottom* of the document (pi commits drawn
+transcript in place, so nothing slides down to fill them), revealing no
+additional transcript and just leaving an empty gap. To see older lines you
+scroll the terminal, which collapse doesn't help with.
+
+### Decision
+**Remove it entirely** — the `collapsed` state, the `toggle_collapsed`
+action/handler, the `Ctrl+]` intercept, the collapsed-mode lockout, the
+collapsed render/indicator, and the collapse legend text in the footer hint
+(`hint.collapse`). A dead keybinding that only punches a hole in the layout
+is worse than no keybinding. Confirmed with the user after demonstrating the
+gap live. (This supersedes the earlier "keep + make safe" plan.)
+
+### Status
+**Implemented** — see `IMPL_TRANSCRIPT_VISIBILITY.md` §Part B (revised).
+
+---
+
 ## [FEATURE] `C-e` comment on the Submit/Cancel tab
 
 ### What we want

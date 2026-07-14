@@ -10,7 +10,6 @@ import {
 	HINT_COMMENT_EDITING,
 	HINT_PART_APPEND,
 	HINT_PART_CANCEL,
-	HINT_PART_COLLAPSE,
 	HINT_PART_COMMENT,
 	HINT_PART_ENTER,
 	HINT_PART_NAV,
@@ -32,8 +31,8 @@ const COMMENT_HEADER = "Comment:";
  * the styled hint exceeds `width`, inflating that row count and desyncing the
  * `bodyHeight + footerRowCount` math in `DialogView.render`. Clipping with
  * `truncateToWidth` (ANSI-aware, matches `multi-select-view.ts` usage) keeps
- * the hint on one line; the collapse affordance falls off the right edge with
- * `…` on terminals too narrow to advertise it.
+ * the hint on one line; trailing hint parts fall off the right edge with
+ * `…` on terminals too narrow to advertise them.
  */
 class OneLineClippedText implements Component {
 	constructor(
@@ -134,11 +133,10 @@ export class QuestionTabStrategy implements TabContentStrategy {
 
 	footerRows(state: DialogState): Component[] {
 		const question = this.config.questions[state.currentTab];
-		// OneLineClippedText (not pi-tui `Text`) — `buildHintText` now includes the
-		// collapse affordance, pushing the rendered string past 80 columns; `Text` would
-		// wrap and break the strategy's `footerRowCount = 4` invariant. Clipping on
-		// narrow terminals drops the trailing parts (collapse hint first, then cancel)
-		// with `…`.
+		// OneLineClippedText (not pi-tui `Text`) — `buildHintText` can exceed the
+		// terminal width; `Text` would wrap and break the strategy's
+		// `footerRowCount = 4` invariant. Clipping on narrow terminals drops the
+		// trailing hint parts with `…`.
 		return [
 			new Spacer(1),
 			this.config.chatRow,
@@ -260,13 +258,12 @@ export class SubmitTabStrategy implements TabContentStrategy {
 
 /**
  * Build the controls hint line. Order:
- *   Enter · ↑/↓ [· Space toggle] [· n notes] [· Tab switch] · Esc · Ctrl+] collapse
+ *   Enter · ↑/↓ [· Space toggle] [· Ctrl+E append] [· Tab switch] · Esc
  *
- * `HINT_SINGLE` / `HINT_MULTI` are the CORE prefix that must always render — the
- * collapse affordance is appended last so the core stays a contiguous substring even
- * when the trailing part is clipped by `OneLineClippedText` on terminals < ~95 cols.
- * This is the trade we picked over wrapping (which would inflate `footerRowCount`
- * and desync the height math in `DialogView.render`).
+ * `HINT_SINGLE` / `HINT_MULTI` are the CORE prefix that must always render; trailing
+ * parts clip with `…` via `OneLineClippedText` on terminals < ~95 cols (the trade we
+ * picked over wrapping, which would inflate `footerRowCount` and desync the height
+ * math in `DialogView.render`).
  */
 export function buildHintText(question: QuestionData | undefined, isMulti: boolean, state: DialogState): string {
 	// Append mode replaces the whole hint line — only two keys matter while editing.
@@ -283,6 +280,5 @@ export function buildHintText(question: QuestionData | undefined, isMulti: boole
 	}
 	if (isMulti) parts.push(t("hint.tab", HINT_PART_TAB));
 	parts.push(t("hint.cancel", HINT_PART_CANCEL));
-	parts.push(t("hint.collapse", HINT_PART_COLLAPSE));
 	return parts.join(" · ");
 }

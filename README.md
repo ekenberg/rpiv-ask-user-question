@@ -1,6 +1,6 @@
 # rpiv-ask-user-question (ekenberg fork)
 
-> **Fork notice:** this is a fork of [`@juicesharp/rpiv-ask-user-question`](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question) (v1.20.0 base), maintained on a separate line of development for the **inline-append (Ctrl+E)** and **Submit-tab comment (Ctrl+E)** features described below. It is not published to npm — install from git as shown in [Install](#install). Upstream remains the source of truth for everything except these deltas.
+> **Fork notice:** this is a fork of [`@juicesharp/rpiv-ask-user-question`](https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question) (v1.20.0 base), maintained on a separate line of development for the **inline-append (Ctrl+E)**, **Submit-tab comment (Ctrl+E)**, and **non-overlay rendering** (the dialog no longer covers preceding output; the upstream `Ctrl+]` collapse feature is removed as redundant) features described below. It is not published to npm — install from git as shown in [Install](#install). Upstream remains the source of truth for everything except these deltas.
 
 <div align="center">
   <a href="https://github.com/juicesharp/rpiv-mono/tree/main/packages/rpiv-ask-user-question">
@@ -24,6 +24,7 @@ Let the model ask you structured clarifying questions instead of guessing. `rpiv
 - **Submit-tab comment (Ctrl+E)** - on the Submit tab, press `Ctrl+E` to open an inline editor; `Enter` **saves** the comment and returns to the Submit/Cancel picker (it does not submit or cancel by itself — a stray Enter while typing can never finalize the dialog); `Esc` discards the in-progress edit. The saved comment travels back to the model on whichever action you take: extra instructions on Submit, a rationale on Cancel.
 - **Chat row on every tab** - redirect the conversation without leaving the dialog.
 - **Terminal-row-aware overflow scroll** - when the dialog is taller than the terminal, the body scrolls between a sticky heading and sticky hints/border; overflow indicators (↑ / ↓ / ↕) show what's clipped.
+- **Doesn't cover your transcript** - the dialog renders as a normal part of the conversation (replacing the input editor), not as a full-screen overlay, so the model's preceding output stays visible above it instead of being painted over. (This makes upstream's `Ctrl+]` collapse-to-read feature redundant, so it's removed in this fork.)
 - **"Other" free-text fallback** - type a custom answer when no option fits.
 - **Localized UI** - sentinel rows, hints, submit/cancel labels, review pane, and notes affordance display in the user's chosen language via `@juicesharp/rpiv-i18n`. Ships Deutsch / English / Español / Français / Português (PT) / Português (BR) / Русский / Українська; switch with `/languages` or `pi --locale <code>`. LLM-facing copy (tool description, schemas, errors) stays English by design.
 
