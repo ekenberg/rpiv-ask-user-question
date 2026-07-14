@@ -35,6 +35,20 @@ import {
 } from "./selectors/projections.js";
 import type { QuestionnaireState } from "./state.js";
 
+/**
+ * Non-overlay dialogs (see IMPL_TRANSCRIPT_VISIBILITY.md §A3) render as a
+ * normal sibling of pi's chat transcript, ABOVE pi's own footer/widget rows
+ * in the document — not as a full-viewport overlay. Reserve a small, tunable
+ * budget so DialogView's internal "fit inside N rows" overflow math doesn't
+ * assume it owns the entire terminal height; otherwise the outer viewport
+ * (bottom-anchored to the whole document, footer last) would clip the TOP of
+ * the dialog (its own heading) instead of leaving chrome room. Heuristic —
+ * pi-coding-agent exposes no exact "remaining rows" API — tune up if the
+ * dialog heading clips with other extensions' widgets/footer active.
+ */
+const CHROME_RESERVE_ROWS = 2;
+const MIN_DIALOG_ROWS = 6;
+
 export interface QuestionnaireBuildConfig {
 	tui: { terminal: { columns: number; rows: number }; requestRender(): void };
 	theme: Theme;
@@ -106,7 +120,8 @@ class QuestionnaireBuilder {
 	private readonly notesInput = new Input();
 	private readonly inlineInput = new Input();
 	private readonly getTerminalWidth = () => this.tui.terminal.columns;
-	private readonly getTerminalRows = () => this.tui.terminal.rows;
+	private readonly getTerminalRows = () =>
+		Math.max(MIN_DIALOG_ROWS, this.tui.terminal.rows - CHROME_RESERVE_ROWS);
 
 	constructor(config: QuestionnaireBuildConfig) {
 		this.tui = config.tui;

@@ -105,27 +105,21 @@ Preview content is rendered as markdown in a monospace box. Multi-line text with
 			// load it only when the tool runs, not at extension registration.
 			const { QuestionnaireSession } = await import("./state/questionnaire-session.js");
 
-			const result = await ctx.ui.custom<QuestionnaireResult>(
-				(tui, theme, _kb, done) => {
-					const session = new QuestionnaireSession({
-						tui,
-						theme,
-						params: typed,
-						itemsByTab,
-						done,
-					});
-					return session.component;
-				},
-				{
-					overlay: true,
-					overlayOptions: {
-						anchor: "bottom-center",
-						width: "100%",
-						maxHeight: "100%",
-						margin: { left: 0, right: 0, bottom: 0 },
-					},
-				},
-			);
+			// Non-overlay (default) ctx.ui.custom(): the dialog replaces the input
+			// editor as a normal sibling of the chat transcript, instead of
+			// compositing as a full-viewport overlay that can overwrite already-
+			// printed output. See IMPL_TRANSCRIPT_VISIBILITY.md §Part A for the
+			// source-verified research behind this choice.
+			const result = await ctx.ui.custom<QuestionnaireResult>((tui, theme, _kb, done) => {
+				const session = new QuestionnaireSession({
+					tui,
+					theme,
+					params: typed,
+					itemsByTab,
+					done,
+				});
+				return session.component;
+			});
 
 			return buildQuestionnaireResponse(result, typed);
 		},
