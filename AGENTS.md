@@ -7,7 +7,7 @@ inline append, Submit review tab).
 This is a **fork** of `@juicesharp/rpiv-ask-user-question` (v1.20.0 base), kept
 on a separate line of development for the inline-append feature. See DEV.md for
 the fork relationship and how this repo relates to upstream and to the
-courtesy PR sent to `juicesharp/rpiv-mono`.
+courtesy PR sent to `juicesharp/rpiv-mono` (merged, released in upstream v2.1.0).
 
 ## Orientation
 - `index.ts` — extension entrypoint; registers the tool.
@@ -43,7 +43,8 @@ courtesy PR sent to `juicesharp/rpiv-mono`.
   upstream's now-redundant `Ctrl+]` collapse feature) are the three
   behavioral deltas from upstream v1.20.0 in this fork, plus the notes-reopen
   bugfix. Keep those deltas small and documented so future upstream re-merges
-  stay tractable. See `DEV.md` → "The delta from upstream v1.20.0" and
+  stay tractable. (The notes-reopen bugfix has since been upstreamed — merged
+  as PR #111, released in upstream v2.1.0.) See `DEV.md` → "The delta from upstream v1.20.0" and
   `IMPL_SUBMIT_COMMENT.md` / `IMPL_TRANSCRIPT_VISIBILITY.md` for the design
   records.
 - Do not author reserved labels (`"Other"`, `"Type something."`, `"Chat about this"`,

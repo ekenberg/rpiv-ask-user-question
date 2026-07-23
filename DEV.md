@@ -10,9 +10,10 @@ layout, the fork relationship, and the day-to-day edit loop.
 - **This repo:** `ekenberg/rpiv-ask-user-question` — a standalone pi package
   whose root *is* the package (so `pi install git:...` finds the `pi` manifest
   directly, instead of cloning the whole monorepo).
-- A courtesy bugfix PR (notes-reopen) was sent to upstream from a separate
-  monorepo clone at `/tmp/rpiv-mono` — see PR #111 in `juicesharp/rpiv-mono`.
-  That PR is independent of this fork's inline-append work.
+- A courtesy bugfix PR (notes-reopen) was sent to upstream — PR #111 in
+  `juicesharp/rpiv-mono`, **merged 2026-07-23** and released in upstream
+  **v2.1.0**. That PR was independent of this fork's inline-append work; the
+  temporary monorepo clone used for it (`/tmp/rpiv-mono`) has been removed.
 
 ### The delta from upstream v1.20.0
 
@@ -37,6 +38,9 @@ Four behavioral changes live in this fork:
    `answers[tab].notes` (matching `switchTabResult`), so reopening the notes
    editor before confirming an option no longer wipes the note. (Kept even
    though the `n` path is retired, for consistency and in case of re-merge.)
+   **Upstreamed:** merged as PR #111, released in upstream v2.1.0 — so this is
+   a delta only vs. the v1.20.0 base, no longer vs. upstream main. (Upstream
+   later extracted a `notesValueFor` helper for the same precedence.)
 3. **Submit-tab comment (Ctrl+E)** — on the Submit tab, `Ctrl+E` opens an
    inline editor (rendered in `SubmitTabStrategy.midRows`, between the answer
    summary and the bottom border); `Enter` **saves** the buffer into
